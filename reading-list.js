@@ -11,11 +11,11 @@ var _ = require('lodash');
 var passport = require('passport');
 var GoodreadsStrategy = require('passport-goodreads').Strategy;
 
-var app = express();
-
 var PORT = process.env.PORT || 3000;
 
 var GOODREADS_BASE = 'https://www.goodreads.com';
+
+var GUARDIAN_BOOKS = _.compact(require('./guardian-correlated.json'));
 
 function updateReadBooks(userId) {
   var url = GOODREADS_BASE + '/review/list/';
@@ -39,12 +39,12 @@ function updateReadBooks(userId) {
         return cbDoWhilst(err);
       }
 
-      xml2js.parseString(res, function (err, body) {
+      xml2js.parseString(res, { explicitArray: false }, function (err, body) {
         if (err) {
           return cbDoWhilst(err);
         }
 
-        body = body.GoodreadsResponse.reviews[0];
+        body = body.GoodreadsResponse.reviews;
 
         if (!total) {
           total = body.$.total;
@@ -64,18 +64,27 @@ function updateReadBooks(userId) {
       console.error('error', err);
     }
 
-    //console.log('items: %j', items);
-
-    //"book":[{"id":[{"_":"461927","$":{"type":"integer"}}],"isbn":["0807607339"],
-
     items = _.map(items, function (item) {
       return {
-        id: item.book[0].id[0]._,
-        isbn: item.book[0].isbn[0]
+        id: item.book.id._,
+        isbn: item.book.isbn
       };
     });
 
-    console.log('items: %j', items);
+    var editions = _(GUARDIAN_BOOKS).map(function (book) {
+      if (!book.editions) {
+        return book.id;
+      }
+
+      return book.editions;
+    })
+    .flatten()
+    .valueOf();
+
+    var intersection = _.intersection(editions, _.pluck(items, 'id'));
+
+    console.log('intersection: %j', intersection);
+    console.log('intersection.length', intersection.length);
   });
 }
 
@@ -96,6 +105,8 @@ passport.use(new GoodreadsStrategy({
 
   return done(null, profile);
 }));
+
+var app = express();
 
 app.use(morgan());
 app.use(bodyParser());
