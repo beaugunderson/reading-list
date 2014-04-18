@@ -5,6 +5,7 @@ var express = require('express');
 var morgan = require('morgan');
 var request = require('request');
 var session = require('express-session');
+var swig = require('swig');
 var xml2js = require('xml2js');
 var _ = require('lodash');
 
@@ -108,6 +109,15 @@ passport.use(new GoodreadsStrategy({
 
 var app = express();
 
+app.engine('html', swig.renderFile);
+
+app.set('view engine', 'html');
+app.set('views', __dirname + '/views');
+
+app.set('view cache', false);
+
+swig.setDefaults({ cache: false });
+
 app.use(morgan());
 app.use(bodyParser());
 app.use(cookieParser());
@@ -117,8 +127,10 @@ app.use(session({ secret: 'goodreads' }));
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(express.static(__dirname + '/static'));
+
 app.get('/', function (req, res) {
-  res.send('hello world');
+  res.render('index', { books: GUARDIAN_BOOKS });
 });
 
 app.get('/auth/goodreads', passport.authenticate('goodreads'));

@@ -1,0 +1,46 @@
+<html>
+ <head>
+  <script src="/vendor/sortable.min.js"></script>
+
+  <link rel="stylesheet" href="/vendor/sortable-theme-bootstrap.css">
+
+  <link rel="stylesheet" href="/vendor/bootstrap/bootstrap.css">
+
+  <link rel="stylesheet" href="/css/main.css">
+ </head>
+
+ <body>
+  <p><a href="/auth/goodreads"><img src="/images/login.png"></a></p>
+
+  <table class="sortable-theme-bootstrap" data-sortable>
+   <thead>
+    <tr>
+     <th>Read</th>
+     <th>Title</th>
+     <th>Author</th>
+     <th>Avg. Rating</th>
+     <th>Ratings</th>
+     <th>Editions</th>
+    </tr>
+   </thead>
+
+   <tbody>
+   {% for book in books %}
+    <tr>
+     <td></td>
+   {% if book.best_book %}
+     <td>{{ book.best_book.title }}</td>
+     <td>{{ book.best_book.author.name }}</td>
+   {% else %}
+     <td>{{ book.title }}</td>
+     <td>{{ book.author.name }}</td>
+   {% endif %}
+     <td>{{ book.average_rating }}</td>
+     <td>{{ book.ratings_count }}</td>
+     <td>{{ book.books_count }}</td>
+    </tr>
+   {% endfor %}
+   </tbody>
+  </table>
+ </body>
+</html>
